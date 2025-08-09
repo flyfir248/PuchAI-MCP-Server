@@ -59,7 +59,7 @@ def call_tool():
         bearer_token = arguments.get('bearer_token')
         phone_number = validate_user(bearer_token)
         if phone_number:
-            return jsonify({"result": phone_number})
+            return phone_number  # Return the phone number as a string
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
