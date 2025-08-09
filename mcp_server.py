@@ -1,8 +1,10 @@
 import asyncio
 import logging
-import os
 import sys
+import os
 from mcp.server import Server
+from mcp.server.stdio import stdio_server
+from mcp.server.models import InitializationOptions, NotificationOptions
 from mcp.types import Tool, TextContent
 
 # Add the parent directory to the path to import tools correctly
@@ -57,7 +59,20 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
 # --- Main Entry Point ---
 async def main():
-    await server.serve()
+    print("🚀 Starting MoneyTracker MCP Server...")
+    async with stdio_server() as (read_stream, write_stream):
+        await server.run(
+            read_stream,
+            write_stream,
+            InitializationOptions(
+                server_name="moneytracker-tools",
+                server_version="1.0.0",
+                capabilities=server.get_capabilities(
+                    notification_options=NotificationOptions(),
+                    experimental_capabilities={},
+                ),
+            ),
+        )
 
 if __name__ == "__main__":
     asyncio.run(main())
