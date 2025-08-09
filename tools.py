@@ -6,8 +6,8 @@ import sys
 
 # Supabase configuration
 load_dotenv()
-SUPABASE_URL = os.environ.get('')
-SUPABASE_KEY = os.environ.get('')
+SUPABASE_URL = os.environ.get('SUPABASE_URL', '')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY', '')
 
 # Add a check to ensure the variables are loaded
 if not SUPABASE_URL or not SUPABASE_KEY:
