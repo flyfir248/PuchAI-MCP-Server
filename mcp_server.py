@@ -1,5 +1,4 @@
 # mcp_server.py
-
 import os
 from flask import Flask, request, jsonify
 from mcp.types import Tool
@@ -8,9 +7,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# --- Server Setup ---
-app = Flask(__name__)
+# Secure token from .env
 POOCH_BEARER_TOKEN = os.environ.get("POOCH_BEARER_TOKEN", "")
+MY_PHONE_NUMBER = os.environ.get("MY_PHONE_NUMBER", "")
+
+app = Flask(__name__)
 
 # --------------------
 # Root Health Check
@@ -22,7 +23,6 @@ def health():
 # --------------------
 # MCP Tool Definitions
 # --------------------
-# The validate tool is a special authentication call and should not be listed here.
 tool_schemas = [
     Tool(
         name="get_current_balance",
@@ -40,6 +40,18 @@ tool_schemas = [
                 "category": {"type": "string", "description": "Category of the purchase."}
             },
             "required": ["item_name", "cost", "category"],
+        }
+    ),
+    # The validate tool schema must include the bearer_token as an argument
+    Tool(
+        name="validate",
+        description="Validates the MCP server connection and returns the owner's phone number.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "bearer_token": {"type": "string", "description": "The bearer token for authentication."}
+            },
+            "required": ["bearer_token"],
         }
     ),
 ]
@@ -72,13 +84,11 @@ def call_tool():
         )
         return jsonify({"result": result})
 
-    # The platform uses a separate authentication method for the validate tool
     elif name == "validate":
-        # The documentation states that the bearer token is passed as a header
         bearer_token = arguments.get("bearer_token")
         if bearer_token == POOCH_BEARER_TOKEN:
             # Return the phone number as a plain string, not a JSON object
-            return "49491786525454"
+            return MY_PHONE_NUMBER
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
@@ -87,7 +97,6 @@ def call_tool():
 # --------------------
 # Server Entry Point
 # --------------------
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
