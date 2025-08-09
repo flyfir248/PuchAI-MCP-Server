@@ -1,27 +1,22 @@
 # mcp_server.py
 
 import os
+import json
 from flask import Flask, request, jsonify
-from mcp.types import Tool, TextContent
-from tools import get_current_balance, add_purchase, validate_user
+from mcp.server import Server
+from mcp.types import Tool
+from tools import get_current_balance, add_purchase
+from dotenv import load_dotenv
 
-# --- Server Setup ---
+# Load environment variables
+load_dotenv()
+
+POOCH_BEARER_TOKEN = os.environ.get("POOCH_BEARER_TOKEN", "")
+
 app = Flask(__name__)
 
 # --- Tool Schemas for Puch AI ---
 tool_schemas = [
-    # The new validate tool for authentication
-    Tool(
-        name="validate",
-        description="Authenticates the user with a bearer token.",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "bearer_token": {"type": "string", "description": "The bearer token for authentication."}
-            },
-            "required": ["bearer_token"],
-        }
-    ),
     Tool(
         name="get_current_balance",
         description="Gets the user's current financial balance.",
@@ -40,6 +35,11 @@ tool_schemas = [
             "required": ["item_name", "cost", "category"],
         }
     ),
+    Tool(
+        name="validate",
+        description="Validates the MCP server connection and returns the phone number in {country_code}{number} format.",
+        inputSchema={"type": "object", "properties": {}}
+    ),
 ]
 
 # --- Flask Routes to expose MCP tools ---
@@ -48,6 +48,7 @@ def list_tools():
     """Exposes a route for Puch AI to discover the available tools."""
     return jsonify([tool.model_dump() for tool in tool_schemas])
 
+
 @app.route('/mcp/call-tool', methods=['POST'])
 def call_tool():
     """Exposes a route for Puch AI to call a specific tool."""
@@ -55,16 +56,7 @@ def call_tool():
     name = data.get('name')
     arguments = data.get('arguments', {})
 
-    if name == "validate":
-        bearer_token = arguments.get('bearer_token')
-        phone_number = validate_user(bearer_token)
-        if phone_number:
-            return phone_number  # Return the phone number as a string
-        else:
-            return jsonify({"error": "Invalid bearer token"}), 401
-
-
-    elif name == "get_current_balance":
+    if name == "get_current_balance":
         balance = get_current_balance()
         return jsonify({"result": f"💰 Current Balance: ₹{balance:.2f}"})
 
@@ -76,28 +68,16 @@ def call_tool():
         )
         return jsonify({"result": result})
 
+    elif name == "validate":
+        bearer_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        if bearer_token == POOCH_BEARER_TOKEN:
+            return jsonify({"result": "+49491786525454"})  # ✅ correct format with "+"
+        else:
+            return jsonify({"error": "Invalid bearer token"}), 401
+
     return jsonify({"error": f"Unknown tool: {name}"}), 400
 
-@app.route('/mcp/manifest.json', methods=['GET'])
-def manifest():
-    return jsonify({
-        "id": "budget-buddy",
-        "name": "Budget Buddy MCP Server",
-        "description": "Tracks financial balances and purchases",
-        "endpoints": {
-            "list_tools": "/mcp/list-tools",
-            "call_tool": "/mcp/call-tool"
-        }
-    })
 
-@app.route('/', methods=['GET'])
-def home():
-    return jsonify({
-        "status": "ok",
-        "message": "Budget Buddy MCP Server is running"
-    })
-
-# --- Main Entry Point ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
