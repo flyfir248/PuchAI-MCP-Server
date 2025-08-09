@@ -65,6 +65,24 @@ def call_tool():
 
     return jsonify({"error": f"Unknown tool: {name}"}), 400
 
+@app.route('/mcp/manifest.json', methods=['GET'])
+def manifest():
+    return jsonify({
+        "id": "budget-buddy",
+        "name": "Budget Buddy MCP Server",
+        "description": "Tracks financial balances and purchases",
+        "endpoints": {
+            "list_tools": "/mcp/list-tools",
+            "call_tool": "/mcp/call-tool"
+        }
+    })
+
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        "status": "ok",
+        "message": "Budget Buddy MCP Server is running"
+    })
 
 # --- Main Entry Point ---
 if __name__ == "__main__":
