@@ -66,6 +66,13 @@ def list_tools():
 # --------------------
 # Tool Caller Endpoint
 # --------------------
+@app.route('/', methods=['GET', 'HEAD', 'POST'])
+def handle_root():
+    if request.method == 'POST':
+        # Redirect POST requests to the correct MCP endpoint
+        return call_tool()
+    return jsonify({"status": "MCP server running"}), 200
+
 @app.route('/mcp/call-tool', methods=['POST'])
 def call_tool():
     data = request.json
