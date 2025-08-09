@@ -63,6 +63,7 @@ def call_tool():
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
+
     elif name == "get_current_balance":
         balance = get_current_balance()
         return jsonify({"result": f"💰 Current Balance: ₹{balance:.2f}"})
