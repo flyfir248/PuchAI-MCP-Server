@@ -1,4 +1,5 @@
 # mcp_server.py
+
 import os
 from flask import Flask, request, jsonify
 from mcp.types import Tool
@@ -7,10 +8,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Secure token from .env
-POOCH_BEARER_TOKEN = os.environ.get("POOCH_BEARER_TOKEN", "")
-
+# --- Server Setup ---
 app = Flask(__name__)
+POOCH_BEARER_TOKEN = os.environ.get("POOCH_BEARER_TOKEN", "")
 
 # --------------------
 # Root Health Check
@@ -22,6 +22,7 @@ def health():
 # --------------------
 # MCP Tool Definitions
 # --------------------
+# The validate tool is a special authentication call and should not be listed here.
 tool_schemas = [
     Tool(
         name="get_current_balance",
@@ -40,11 +41,6 @@ tool_schemas = [
             },
             "required": ["item_name", "cost", "category"],
         }
-    ),
-    Tool(
-        name="validate",
-        description="Validates the MCP server connection and returns the owner's phone number.",
-        inputSchema={"type": "object", "properties": {}}
     ),
 ]
 
@@ -76,10 +72,13 @@ def call_tool():
         )
         return jsonify({"result": result})
 
+    # The platform uses a separate authentication method for the validate tool
     elif name == "validate":
-        bearer_token = request.headers.get("Authorization", "").replace("Bearer ", "")
+        # The documentation states that the bearer token is passed as a header
+        bearer_token = arguments.get("bearer_token")
         if bearer_token == POOCH_BEARER_TOKEN:
-            return jsonify({"result": "49491786525454"})  # Your phone number in required format
+            # Return the phone number as a plain string, not a JSON object
+            return "49491786525454"
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
