@@ -4,7 +4,8 @@ import sys
 import os
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.server.models import InitializationOptions, NotificationOptions
+from mcp.server.models import InitializationOptions
+from mcp.server import NotificationOptions
 from mcp.types import Tool, TextContent
 
 # Add the parent directory to the path to import tools correctly
