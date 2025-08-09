@@ -9,7 +9,7 @@ from tools import get_current_balance, add_purchase
 
 # --- Server Setup ---
 app = Flask(__name__)
-server = Server(name="budget-buddy-mcp")
+#server = Server(name="budget-buddy-mcp")
 
 # --- Tool Schemas for Puch AI ---
 tool_schemas = [
