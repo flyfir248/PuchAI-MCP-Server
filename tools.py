@@ -22,7 +22,7 @@ def validate_user(bearer_token: str) -> str | None:
     # For hackathon purposes, we check the token against an environment variable.
     if bearer_token == POOCH_BEARER_TOKEN:
         # The documentation specifies the format: {country_code}{number}
-        return "919876543210" # Example phone number for India
+        return "9909241865" # Example phone number for India
     return None
 
 # --- Tool Functions ---
