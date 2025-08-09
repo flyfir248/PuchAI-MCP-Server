@@ -87,13 +87,12 @@ def call_tool():
     elif name == "validate":
         bearer_token = arguments.get("bearer_token")
         if bearer_token == AUTH_TOKEN:
-            # This is the critical fix: return the plain string
-            return MY_NUMBER
+            # FIX: Return JSON response with the phone number
+            return jsonify({"result": MY_NUMBER})
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
     return jsonify({"error": f"Unknown tool: {name}"}), 400
-
 # --------------------
 # Server Entry Point
 # --------------------
