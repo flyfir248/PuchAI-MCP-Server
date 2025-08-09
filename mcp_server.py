@@ -1,17 +1,27 @@
 # mcp_server.py
 
 import os
-import json
 from flask import Flask, request, jsonify
-from mcp.server import Server
 from mcp.types import Tool, TextContent
-from tools import get_current_balance, add_purchase
+from tools import get_current_balance, add_purchase, validate_user
 
 # --- Server Setup ---
 app = Flask(__name__)
 
 # --- Tool Schemas for Puch AI ---
 tool_schemas = [
+    # The new validate tool for authentication
+    Tool(
+        name="validate",
+        description="Authenticates the user with a bearer token.",
+        inputSchema={
+            "type": "object",
+            "properties": {
+                "bearer_token": {"type": "string", "description": "The bearer token for authentication."}
+            },
+            "required": ["bearer_token"],
+        }
+    ),
     Tool(
         name="get_current_balance",
         description="Gets the user's current financial balance.",
@@ -32,26 +42,28 @@ tool_schemas = [
     ),
 ]
 
-
 # --- Flask Routes to expose MCP tools ---
 @app.route('/mcp/list-tools', methods=['GET'])
 def list_tools():
-    """
-    Exposes a route for Puch AI to discover the available tools.
-    """
+    """Exposes a route for Puch AI to discover the available tools."""
     return jsonify([tool.model_dump() for tool in tool_schemas])
-
 
 @app.route('/mcp/call-tool', methods=['POST'])
 def call_tool():
-    """
-    Exposes a route for Puch AI to call a specific tool.
-    """
+    """Exposes a route for Puch AI to call a specific tool."""
     data = request.json
     name = data.get('name')
     arguments = data.get('arguments', {})
 
-    if name == "get_current_balance":
+    if name == "validate":
+        bearer_token = arguments.get('bearer_token')
+        phone_number = validate_user(bearer_token)
+        if phone_number:
+            return jsonify({"result": phone_number})
+        else:
+            return jsonify({"error": "Invalid bearer token"}), 401
+
+    elif name == "get_current_balance":
         balance = get_current_balance()
         return jsonify({"result": f"💰 Current Balance: ₹{balance:.2f}"})
 
