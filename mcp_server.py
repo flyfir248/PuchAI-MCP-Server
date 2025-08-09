@@ -7,10 +7,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Secure token from .env
-POOCH_BEARER_TOKEN = os.environ.get("POOCH_BEARER_TOKEN", "")
-MY_PHONE_NUMBER = os.environ.get("MY_PHONE_NUMBER", "")
+# Get auth token and phone number from .env
+AUTH_TOKEN = os.environ.get("AUTH_TOKEN", "")
+MY_NUMBER = os.environ.get("MY_NUMBER", "")
 
+# Flask application setup
 app = Flask(__name__)
 
 # --------------------
@@ -42,7 +43,6 @@ tool_schemas = [
             "required": ["item_name", "cost", "category"],
         }
     ),
-    # The validate tool schema must include the bearer_token as an argument
     Tool(
         name="validate",
         description="Validates the MCP server connection and returns the owner's phone number.",
@@ -86,9 +86,9 @@ def call_tool():
 
     elif name == "validate":
         bearer_token = arguments.get("bearer_token")
-        if bearer_token == POOCH_BEARER_TOKEN:
-            # Return the phone number as a plain string, not a JSON object
-            return MY_PHONE_NUMBER
+        if bearer_token == AUTH_TOKEN:
+            # This is the critical fix: return the plain string
+            return MY_NUMBER
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
