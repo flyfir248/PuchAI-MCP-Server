@@ -79,7 +79,7 @@ def call_tool():
         # Check for token in Authorization header
         bearer_token = request.headers.get("Authorization", "").replace("Bearer ", "")
         if bearer_token == AUTH_TOKEN:
-            return jsonify({"result": MY_NUMBER})
+            return MY_NUMBER
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
