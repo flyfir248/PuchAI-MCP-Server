@@ -7,7 +7,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# The variable name has been updated to match your .env file
 AUTH_TOKEN = os.environ.get("AUTH_TOKEN", "")
 MY_NUMBER = os.environ.get("MY_NUMBER", "")
 
@@ -86,7 +85,6 @@ def call_tool():
     elif name == "validate":
         bearer_token = arguments.get("bearer_token")
         if bearer_token == AUTH_TOKEN:
-            # CORRECT: Return a plain string
             return MY_NUMBER
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
