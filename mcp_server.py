@@ -1,4 +1,3 @@
-# mcp_server.py
 import os
 from flask import Flask, request, jsonify
 from mcp.types import Tool
@@ -44,13 +43,7 @@ tool_schemas = [
     Tool(
         name="validate",
         description="Validates the MCP server connection and returns the owner's phone number.",
-        inputSchema={
-            "type": "object",
-            "properties": {
-                "bearer_token": {"type": "string", "description": "The bearer token for authentication."}
-            },
-            "required": ["bearer_token"],
-        }
+        inputSchema={"type": "object", "properties": {}}
     ),
 ]
 
@@ -83,9 +76,10 @@ def call_tool():
         return jsonify({"result": result})
 
     elif name == "validate":
-        bearer_token = arguments.get("bearer_token")
+        # Check for token in Authorization header
+        bearer_token = request.headers.get("Authorization", "").replace("Bearer ", "")
         if bearer_token == AUTH_TOKEN:
-            return MY_NUMBER
+            return jsonify({"result": MY_NUMBER})
         else:
             return jsonify({"error": "Invalid bearer token"}), 401
 
@@ -94,7 +88,6 @@ def call_tool():
 # --------------------
 # Server Entry Point
 # --------------------
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
